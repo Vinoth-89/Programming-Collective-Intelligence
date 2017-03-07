@@ -42,8 +42,55 @@ def sim_distance(prefs,person1,person2):
                         for item in prefs[person1] if item in prefs[person2]])
     return 1/(1+sqrt(sum_of_squares))
 
-#reload(recommendations)
+#Returns the pearson correlation coefficient for p1 and p2
+def sim_pearson(prefs,p1,p2):
+    #Get the mutually rated items
+    si={}
+    for item in prefs[p1]:
+        if item in prefs[p2]:
+            si[item]=1
+    #Number of similar elements
+    n = len(si)
+    
+    #if there are no common items, return 0
+    if n == 0: return 0
+    
+    #Add the ratings of p1,p2 prefrences
+    sum1 = sum([prefs[p1][it] for it in si])
+    sum2 = sum([prefs[p2][it] for it in si])
+    
+    #sum up the squares
+    sum1sq = sum([pow(prefs[p1][it],2) for it in si])
+    sum2sq = sum([pow(prefs[p2][it],2) for it in si])
+    
+    #sum of the products
+    pSum = sum([prefs[p1][it]*prefs[p2][it] for it in si])
+    
+    #Calculate Pearson Score
+    num = pSum - (sum1*sum2/n)
+    den = sqrt((sum1sq-pow(sum1,2)/n)*(sum2sq-pow(sum2,2)/n))
+    if den == 0: return 0
+    
+    r = num/den
+    return r
+    
+def topMatches(prefs,person,n=5,similarity=sim_pearson):
+    scores=[(similarity(prefs,person,other), other )
+                        for other in prefs if other != person]
+    scores.sort()
+    scores.reverse()
+    return scores[0:n]
 
+#reload(recommendations)
+print("***********","Euclidean Distance","***********")
 for key in critics:
     if key != 'Lisa Rose':
         print("Lisa Rose - ",key," : ",sim_distance(critics,key,'Lisa Rose'))
+print("***********","Pearson Correlation Covariance","***********")
+for key in critics:
+    if key != 'Lisa Rose':
+        print("Lisa Rose - ",key," : ",sim_pearson(critics,key,'Lisa Rose'))
+print("***********","Top Matches","***********")
+print(topMatches(critics,'Toby',n=3))
+print("***********","Top Matches","***********")
+print(topMatches(critics,'Toby',n=3,similarity=sim_distance))
